@@ -1,0 +1,278 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD OPERATION WEB APPLICATION</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(120deg, rgb(164, 89, 102) , rgb(207, 64, 88) );
+            animation: gradientAnimation 5s ease infinite;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .form-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="email"], #filterInput {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        input:invalid {
+            border-color: #dc3545;
+        }
+
+        input:valid {
+            border-color: #28a745;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 10px;
+            width: 50%;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #deleteAll {
+            background-color: #ff6b6b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .action-buttons button {
+            display: inline-block;
+            width: 70px;
+            padding: 5px;
+            font-size: 14px;
+        }
+
+        .action-buttons button.modify {
+            background-color: #007BFF;
+            color: white;
+            margin-right: 10px;
+        }
+
+        .action-buttons button.delete {
+            background-color: #DC3545;
+            color: white;
+        }
+
+        .table-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        #filterInput {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>USER DETAILS</h2>
+        <form id="userForm">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" pattern="[A-Za-z\s]+" title="Name must only contain letters" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+                <label for="number">Number:</label>
+                <input type="text" id="number" pattern="\d{10}" title="Number must be exactly 10 digits" required>
+            </div>
+
+            <button type="submit">Submit</button>
+            <button id="deleteAll" type="button">Delete All</button>
+            
+            <input type="text" id="filterInput" placeholder="Filter by name, email, or number" />
+        </form>
+    </div>
+
+    <div class="table-container">
+        <table id="userTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Number</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Table rows will be added here dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const userForm = document.getElementById('userForm');
+        const userTable = document.getElementById('userTable').getElementsByTagName('tbody')[0];
+        const deleteAllButton = document.getElementById('deleteAll');
+        const filterInput = document.getElementById('filterInput');
+
+        userForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const number = document.getElementById('number').value;
+
+            if (!userForm.checkValidity()) {
+                return;
+            }
+
+            let emailDuplicate = false;
+            let numberDuplicate = false;
+
+            Array.from(userTable.rows).forEach(row => {
+                if (row.cells[1].innerText === email) {
+                    emailDuplicate = true;
+                }
+                if (row.cells[2].innerText === number) {
+                    numberDuplicate = true;
+                }
+            });
+
+            if (emailDuplicate && numberDuplicate) {
+                alert("Error: Email and Number already exist!");
+                return;
+            } else if (emailDuplicate) {
+                alert("Error: Email already exists!");
+                return;
+            } else if (numberDuplicate) {
+                alert("Error: Number already exists!");
+                return;
+            }
+
+            const newRow = userTable.insertRow();
+            newRow.insertCell(0).innerText = name;
+            newRow.insertCell(1).innerText = email;
+            newRow.insertCell(2).innerText = number;
+
+            const actionCell = newRow.insertCell(3);
+            const modifyButton = document.createElement('button');
+            modifyButton.innerText = 'Modify';
+            modifyButton.className = 'modify';
+            modifyButton.onclick = function() {
+                document.getElementById('name').value = name;
+                document.getElementById('email').value = email;
+                document.getElementById('number').value = number;
+                userTable.deleteRow(newRow.rowIndex - 1);
+            };
+
+            const deleteButton = document.createElement('button');
+            deleteButton.innerText = 'Delete';
+            deleteButton.className = 'delete';
+            deleteButton.onclick = function() {
+                const confirmDelete = confirm("Are you sure you want to delete this entry?");
+                if (confirmDelete) {
+                    userTable.deleteRow(newRow.rowIndex - 1);
+                }
+            };
+
+            const actionContainer = document.createElement('div');
+            actionContainer.className = 'action-buttons';
+            actionContainer.appendChild(modifyButton);
+            actionContainer.appendChild(deleteButton);
+            actionCell.appendChild(actionContainer);
+
+            userForm.reset();
+        });
+
+        deleteAllButton.addEventListener('click', () => {
+            const confirmDelete = confirm("Are you sure you want to delete all entries?");
+            if (confirmDelete) {
+                userTable.innerHTML = '';
+            }
+        });
+
+        filterInput.addEventListener('input', () => {
+            const filterValue = filterInput.value.toLowerCase();
+            Array.from(userTable.rows).forEach(row => {
+                const nameCell = row.cells[0].innerText.toLowerCase();
+                const emailCell = row.cells[1].innerText.toLowerCase();
+                const numberCell = row.cells[2].innerText.toLowerCase();
+
+                if (nameCell.includes(filterValue) || emailCell.includes(filterValue) || numberCell.includes(filterValue)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
